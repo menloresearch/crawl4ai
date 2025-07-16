@@ -18,7 +18,7 @@ import base64
 import re
 from crawl4ai import AsyncWebCrawler, BrowserConfig, CrawlerRunConfig
 from api import (
-    handle_markdown_request, handle_llm_qa,
+    handle_markdown_request, handle_llm_qa, handle_google_search_markdown,
     handle_stream_crawl_request, handle_crawl_request,
     stream_results
 )
@@ -26,6 +26,7 @@ from schemas import (
     CrawlRequest,
     MarkdownRequest,
     MarkdownRequestSimple,
+    GoogleSearchRequest,
     RawCode,
     HTMLRequest,
     ScreenshotRequest,
@@ -277,6 +278,27 @@ async def get_markdown_simple(
         "cache": CACHE_VALUE,
         "markdown": markdown,
         "success": True
+    })
+
+# --- Google Search Markdown endpoint ---
+
+
+@app.post("/google/md")
+@limiter.limit(config["rate_limiting"]["default_limit"])
+@mcp_tool("google_search_markdown")
+async def google_search_markdown_endpoint(
+    request: Request,
+    body: GoogleSearchRequest,
+    _td: Dict = Depends(token_dep),
+):
+    """Return raw Markdown of Google Search results for a query."""
+    markdown = await handle_google_search_markdown(
+        body.query,
+    )
+    return JSONResponse({
+        "query": body.query,
+        "markdown": markdown,
+        "success": True,
     })
 
 @app.post("/html")

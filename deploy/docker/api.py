@@ -9,6 +9,7 @@ from datetime import datetime
 import logging
 from typing import Optional, AsyncGenerator
 from urllib.parse import unquote
+from crawl4ai.processors.pdf import PDFContentScrapingStrategy
 from fastapi import HTTPException, Request, status
 from fastapi.background import BackgroundTasks
 from fastapi.responses import JSONResponse
@@ -194,12 +195,18 @@ async def handle_markdown_request(
 
         cache_mode = CacheMode.ENABLED if cache == "1" else CacheMode.WRITE_ONLY
 
-        async with AsyncWebCrawler() as crawler:
+        # if '/pdf' in decoded_url or '.pdf' in decoded_url:
+        if False:
+            scraping_strategy = PDFContentScrapingStrategy()
+        else:
+            scraping_strategy = LXMLWebScrapingStrategy()
+
+        async with AsyncWebCrawler() as crawler: # type: ignore
             result = await crawler.arun(
                 url=decoded_url,
                 config=CrawlerRunConfig(
                     markdown_generator=md_generator,
-                    scraping_strategy=LXMLWebScrapingStrategy(),
+                    scraping_strategy=scraping_strategy,
                     cache_mode=cache_mode
                 )
             )
@@ -569,3 +576,68 @@ async def handle_crawl_job(
 
     background_tasks.add_task(_runner)
     return {"task_id": task_id}
+
+async def handle_google_search_markdown(
+    query: str,
+    page_start: int = 1,
+    page_length: int = 1,
+    cache: str = "0",
+    *,
+    headless: bool = True,
+) -> str:
+    """Crawl a Google Search results page and return its content as raw Markdown.
+
+    Parameters
+    ----------
+    query : str
+        Search query string (URL-encoded str is fine; will be passed verbatim).
+    page_start : int, optional
+        Which Google SERP page to start from (1-based). Defaults to 1.
+    page_length : int, optional
+        Number of results per page (Google supports up to 100, default 10).
+    cache : str, optional
+        Cache switch – "1" enables read/write cache, "0" write-only. Default "0".
+    headless : bool, optional
+        Whether to run the browser in headless mode. Default True.
+
+    Returns
+    -------
+    str
+        Raw Markdown generated from the rendered SERP HTML.
+    """
+
+    try:
+        # Build Google Search URL
+        url = f"https://www.google.com/search?q={query}&gl=sg&hl=en"
+        if page_start > 1:
+            url += f"&start={(page_start - 1) * 10}"
+        if page_length > 1:
+            url += f"&num={page_length}"
+
+        browser_cfg = BrowserConfig(headless=headless, verbose=False)
+
+        md_generator = DefaultMarkdownGenerator()  # RAW markdown – no LLM filter
+
+        cache_mode = CacheMode.ENABLED if cache == "1" else CacheMode.WRITE_ONLY
+
+        crawler_cfg = CrawlerRunConfig(
+            markdown_generator=md_generator,
+            scraping_strategy=LXMLWebScrapingStrategy(),
+            cache_mode=cache_mode,
+        )
+
+        async with AsyncWebCrawler(config=browser_cfg) as crawler:
+            result = await crawler.arun(url=url, config=crawler_cfg)  # type: ignore[assignment]
+            if not result.success:  # type: ignore[attr-defined]
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=getattr(result, "error_message", "Unknown error"),
+                )
+            return result.markdown.raw_markdown  # type: ignore[attr-defined]
+
+    except Exception as e:
+        logger.error(f"Google search markdown error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e),
+        )

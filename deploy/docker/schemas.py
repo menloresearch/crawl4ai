@@ -38,6 +38,11 @@ class PDFRequest(BaseModel):
     output_path: Optional[str] = None
 
 
+# --- Google Search Markdown ---
+class GoogleSearchRequest(BaseModel):
+    """Request body for Google search markdown endpoint."""
+    query: str = Field(..., description="Google search query string")
+
 class JSEndpointRequest(BaseModel):
     url: str
     scripts: List[str] = Field(
