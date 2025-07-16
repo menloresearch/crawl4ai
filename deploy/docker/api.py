@@ -195,8 +195,7 @@ async def handle_markdown_request(
 
         cache_mode = CacheMode.ENABLED if cache == "1" else CacheMode.WRITE_ONLY
 
-        # if '/pdf' in decoded_url or '.pdf' in decoded_url:
-        if False:
+        if '/pdf' in decoded_url or '.pdf' in decoded_url:
             scraping_strategy = PDFContentScrapingStrategy()
         else:
             scraping_strategy = LXMLWebScrapingStrategy()
