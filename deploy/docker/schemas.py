@@ -16,6 +16,11 @@ class MarkdownRequest(BaseModel):
     q:   Optional[str] = Field(None,  description="Query string used by BM25/LLM filters")
     c:   Optional[str] = Field("0",   description="Cache‑bust / revision counter")
 
+class MarkdownRequestSimple(BaseModel):
+    """Request body for the /md endpoint."""
+    url: str                    = Field(...,  description="Absolute http/https URL to fetch")
+
+
 
 class RawCode(BaseModel):
     code: str

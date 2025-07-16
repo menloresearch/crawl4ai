@@ -25,6 +25,7 @@ from api import (
 from schemas import (
     CrawlRequest,
     MarkdownRequest,
+    MarkdownRequestSimple,
     RawCode,
     HTMLRequest,
     ScreenshotRequest,
@@ -252,6 +253,31 @@ async def get_markdown(
         "success": True
     })
 
+
+
+@app.post("/get_markdown_from_url_simple")
+@limiter.limit(config["rate_limiting"]["default_limit"])
+@mcp_tool("get_markdown_from_url_simple")
+async def get_markdown_simple(
+    request: Request,
+    body: MarkdownRequestSimple,
+    _td: Dict = Depends(token_dep),
+):
+    if not body.url.startswith(("http://", "https://")):
+        raise HTTPException(
+            400, "URL must be absolute and start with http/https")
+    CACHE_VALUE = '0'
+    markdown = await handle_markdown_request(
+        body.url, FilterType.FIT, None, CACHE_VALUE, config
+    )
+    return JSONResponse({
+        "url": body.url,
+        "filter": FilterType.FIT,
+        "query": None,
+        "cache": CACHE_VALUE,
+        "markdown": markdown,
+        "success": True
+    })
 
 @app.post("/html")
 @limiter.limit(config["rate_limiting"]["default_limit"])
