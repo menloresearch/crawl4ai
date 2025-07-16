@@ -49,7 +49,7 @@ def _make_http_proxy(base_url: str, route):
                 kwargs.pop(k)
         url = base_url.rstrip("/") + path
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=60.0) as client:
             try:
                 r = (
                     await client.get(url, params=kwargs)
