@@ -65,8 +65,9 @@ crawler:
     idle_ttl_sec: 1800                     # ← 30 min janitor cutoff
   browser:
     kwargs:
-      headless: true
-      text_mode: true
+      headless: false
+      text_mode: false
+      use_managed_browser: true
     extra_args:
       # - "--single-process"
       - "--no-sandbox"

@@ -169,7 +169,7 @@ async def handle_markdown_request(
     filter_type: FilterType,
     query: Optional[str] = None,
     cache: str = "0",
-    config: Optional[dict] = None
+    config: Optional[dict] = None,
 ) -> str:
     """Handle markdown generation requests."""
     try:
@@ -199,9 +199,11 @@ async def handle_markdown_request(
             scraping_strategy = PDFContentScrapingStrategy()
         else:
             scraping_strategy = LXMLWebScrapingStrategy()
-
-        async with AsyncWebCrawler() as crawler: # type: ignore
-            result = await crawler.arun(
+        # Reuse a shared managed browser so the tab remains open between calls
+        browser_cfg = BrowserConfig(headless=config['crawler']['browser']['kwargs']['headless'], use_managed_browser=config['crawler']['browser']['kwargs']['use_managed_browser'], verbose=False)
+        from crawler_pool import get_crawler
+        crawler = await get_crawler(browser_cfg)
+        result = await crawler.arun(
                 url=decoded_url,
                 config=CrawlerRunConfig(
                     markdown_generator=md_generator,
@@ -210,15 +212,17 @@ async def handle_markdown_request(
                 )
             )
             
-            if not result.success:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=result.error_message
-                )
+        if not result.success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=result.error_message
+            )
 
-            return (result.markdown.raw_markdown 
-                   if filter_type == FilterType.RAW 
-                   else result.markdown.fit_markdown)
+        return (
+            result.markdown.raw_markdown
+            if filter_type == FilterType.RAW
+            else result.markdown.fit_markdown
+        )
 
     except Exception as e:
         logger.error(f"Markdown error: {str(e)}", exc_info=True)
@@ -581,8 +585,7 @@ async def handle_google_search_markdown(
     page_start: int = 1,
     page_length: int = 1,
     cache: str = "0",
-    *,
-    headless: bool = True,
+    config: Optional[dict] = None,
 ) -> str:
     """Crawl a Google Search results page and return its content as raw Markdown.
 
@@ -613,7 +616,8 @@ async def handle_google_search_markdown(
         if page_length > 1:
             url += f"&num={page_length}"
 
-        browser_cfg = BrowserConfig(headless=headless, verbose=False)
+        # Use shared managed browser so Chromium window stays open
+        browser_cfg = BrowserConfig(headless=config['crawler']['browser']['kwargs']['headless'], use_managed_browser=config['crawler']['browser']['kwargs']['use_managed_browser'], verbose=False)
 
         md_generator = DefaultMarkdownGenerator()  # RAW markdown – no LLM filter
 
@@ -625,14 +629,15 @@ async def handle_google_search_markdown(
             cache_mode=cache_mode,
         )
 
-        async with AsyncWebCrawler(config=browser_cfg) as crawler:
-            result = await crawler.arun(url=url, config=crawler_cfg)  # type: ignore[assignment]
-            if not result.success:  # type: ignore[attr-defined]
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=getattr(result, "error_message", "Unknown error"),
-                )
-            return result.markdown.raw_markdown  # type: ignore[attr-defined]
+        from crawler_pool import get_crawler
+        crawler = await get_crawler(browser_cfg)
+        result = await crawler.arun(url=url, config=crawler_cfg)  # type: ignore[assignment]
+        if not result.success:  # type: ignore[attr-defined]
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=getattr(result, "error_message", "Unknown error"),
+            )
+        return result.markdown.raw_markdown  # type: ignore[attr-defined]
 
     except Exception as e:
         logger.error(f"Google search markdown error: {e}", exc_info=True)

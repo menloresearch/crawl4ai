@@ -294,6 +294,7 @@ async def google_search_markdown_endpoint(
     """Return raw Markdown of Google Search results for a query."""
     markdown = await handle_google_search_markdown(
         body.query,
+        config=config
     )
     return JSONResponse({
         "query": body.query,
