@@ -256,9 +256,9 @@ async def get_markdown(
 
 
 
-@app.post("/get_markdown_from_url_simple")
+@app.post("/visit_tool")
 @limiter.limit(config["rate_limiting"]["default_limit"])
-@mcp_tool("get_markdown_from_url_simple")
+@mcp_tool("visit_tool")
 async def get_markdown_simple(
     request: Request,
     body: MarkdownRequestSimple,
