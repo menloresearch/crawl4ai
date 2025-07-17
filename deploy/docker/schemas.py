@@ -17,7 +17,8 @@ class MarkdownRequest(BaseModel):
     c:   Optional[str] = Field("0",   description="Cache‑bust / revision counter")
 
 class MarkdownRequestSimple(BaseModel):
-    """Request body for the /md endpoint."""
+    """Tools to get information from a URL. Should be used only when you already know the URL. 
+    For example, when you search for a URL on Google and you want to get the markdown of the page."""
     url: str                    = Field(...,  description="Absolute http/https URL to fetch")
 
 
