@@ -97,6 +97,13 @@ gunicorn --bind 0.0.0.0:11235 --workers 1 --threads 4 --timeout 1800 --graceful-
 
 Once set up, your MCP agent will be running and ready to handle web crawling requests!
 
+### 🔗 API Endpoints
+
+- **Main API**: `http://localhost:11235`
+- **Schema**: `http://localhost:11235/mcp/schema` - View the API schema and available endpoints
+- **MCP SSE**: `http://localhost:11235/mcp/sse` - Server-Sent Events endpoint for MCP
+- **MCP Streamable HTTP**: `http://localhost:11235/mcp/http` - Streamable HTTP endpoint for MCP (thanks to [PR #1212](https://github.com/unclecode/crawl4ai/pull/1212))
+
 ### 🧪 Test with MCP Inspector
 
 After setup, test your installation with the MCP Inspector:
@@ -106,27 +113,18 @@ After setup, test your installation with the MCP Inspector:
 npx @modelcontextprotocol/inspector
 ```
 
-When prompted by the MCP inspector:
+When prompted by the MCP inspector, you can use either transport option:
+
+**Option 1: Server-Sent Events (SSE)**
 - **URL**: `http://127.0.0.1:11235/mcp/sse`
 - **Connection type**: `sse`
+
+**Option 2: Streamable HTTP**
+- **URL**: `http://127.0.0.1:11235/mcp/http`
+- **Connection type**: `Streamable HTTP`
 
 Once connected, you can test the setup by calling available tools such as:
 - `visit_tool` - Visit and crawl web pages
 - `google_search_markdown` - Search Google and get markdown results
 
 This helps verify that your MCP agent is working correctly with the selected website.
-
-### 🔗 API Endpoints
-
-- **Main API**: `http://localhost:11235`
-- **Schema**: `http://localhost:11235/mcp/schema` - View the API schema and available endpoints
-- **MCP SSE**: `http://localhost:11235/mcp/sse` - Server-Sent Events endpoint for MCP
-
-### 🔄 Convert to StreamableHTTP (Optional)
-
-If you need to convert the SSE (Server-Sent Events) connection to StreamableHTTP for compatibility with certain clients:
-
-```bash
-# Install and run supergateway to convert SSE to StreamableHTTP
-npx -y supergateway --sse http://127.0.0.1:11235/mcp/sse --outputTransport streamableHttp
-```
