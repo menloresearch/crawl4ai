@@ -67,7 +67,7 @@ crawler:
     kwargs:
       headless: false
       text_mode: false
-      use_managed_browser: false
+      use_managed_browser: true
     extra_args:
       # - "--single-process"
       - "--no-sandbox"
