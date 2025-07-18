@@ -12,7 +12,7 @@ This guide helps you set up Crawl4AI as an MCP (Model Context Protocol) agent.
 
 ## 📋 Prerequisites
 
-- Python 3.8+
+- Python 3.10+
 - Docker and Docker Compose (for Docker setup)
 - Git
 
@@ -96,6 +96,25 @@ gunicorn --bind 0.0.0.0:11235 --workers 1 --threads 4 --timeout 1800 --graceful-
 ## 🚀 Next Steps
 
 Once set up, your MCP agent will be running and ready to handle web crawling requests!
+
+### 🧪 Test with MCP Inspector
+
+After setup, test your installation with the MCP Inspector:
+
+```bash
+# Run the MCP inspector
+npx @modelcontextprotocol/inspector
+```
+
+When prompted by the MCP inspector:
+- **URL**: `http://127.0.0.1:11235/mcp/sse`
+- **Connection type**: `sse`
+
+Once connected, you can test the setup by calling available tools such as:
+- `visit_tool` - Visit and crawl web pages
+- `google_search_markdown` - Search Google and get markdown results
+
+This helps verify that your MCP agent is working correctly with the selected website.
 
 ### 🔗 API Endpoints
 
