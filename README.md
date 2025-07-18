@@ -76,23 +76,6 @@ cp config_headed.yml config.yml
 gunicorn --bind 0.0.0.0:11235 --workers 1 --threads 4 --timeout 1800 --graceful-timeout 30 --keep-alive 300 --log-level info --worker-class uvicorn.workers.UvicornWorker server:app
 ```
 
-## 🔧 Configuration Options
-
-### Browser Modes
-- **Headed Mode** (Recommended): Shows the browser window while crawling. Great for:
-  - Debugging and development
-  - Seeing what the crawler is doing
-  - Handling complex sites that need visual interaction
-  
-- **Headless Mode**: No browser window, runs in background. Good for:
-  - Production servers
-  - Automated scripts
-  - When you don't need to see the browser
-
-### Setup Methods
-- **Local Setup**: More flexible, supports both headed and headless modes
-- **Docker Setup**: Simpler but headless only, good for consistent environments
-
 ## 🚀 Next Steps
 
 Once set up, your MCP agent will be running and ready to handle web crawling requests!
