@@ -54,6 +54,7 @@ crawler:
   base_config:
     simulate_user: true
   memory_threshold_percent: 95.0
+  max_pages: 15
   rate_limiter:
     enabled: true
     base_delay: [1.0, 2.0]
