@@ -710,6 +710,7 @@ security:
 # Crawler Configuration
 crawler:
   memory_threshold_percent: 95.0
+  max_pages: 15 #Max number of pages in PDF before rejected
   rate_limiter:
     base_delay: [1.0, 2.0] # Min/max delay between requests in seconds for dispatcher
   timeouts:
